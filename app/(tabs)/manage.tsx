@@ -11,13 +11,17 @@ export default function ManageScreen() {
 
   const loadData = async () => {
     const json = await AsyncStorage.getItem(STORAGE_KEY);
-    if (json) setData(JSON.parse(json));
+    if (json) {
+        const parsed = JSON.parse(json);
+        parsed.sort((a: Activity, b: Activity) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setData(parsed);
+    }
   };
 
   useFocusEffect(useCallback(() => { loadData(); }, []));
 
   const handleDelete = (id: string) => {
-    Alert.alert("ลบข้อมูล", "ยืนยันการลบ?", [
+    Alert.alert("ยืนยัน", "ต้องการลบรายการนี้?", [
       { text: "ยกเลิก" },
       { text: "ลบ", style: "destructive", onPress: async () => {
           const newData = data.filter(i => i.id !== id);
@@ -29,12 +33,15 @@ export default function ManageScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', margin: 20 }}>ประวัติทั้งหมด</Text>
+      <View style={{ padding: 20, backgroundColor: 'white', elevation: 2 }}>
+        <Text style={{ fontSize: 24, fontWeight: 'bold' }}>จัดการประวัติ</Text>
+      </View>
       <FlatList
         data={data}
         keyExtractor={i => i.id}
         renderItem={({ item }) => <HistoryRow item={item} onDelete={handleDelete} />}
-        contentContainerStyle={{ paddingHorizontal: 20 }}
+        contentContainerStyle={{ padding: 20 }}
+        ListEmptyComponent={<Text style={{textAlign:'center', marginTop:50, color:'#999'}}>ยังไม่มีข้อมูล</Text>}
       />
     </SafeAreaView>
   );

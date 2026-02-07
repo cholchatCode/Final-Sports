@@ -1,59 +1,72 @@
 import React, { useState } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Image
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-// Imports
 import QuickSelector from '../../components/QuickSelector';
 import { Activity, QuickOption, STORAGE_KEY } from '../../constants/types';
 
 export default function AddActivityScreen() {
   const router = useRouter();
   
-  // State
   const [title, setTitle] = useState('');
   const [calories, setCalories] = useState('');
-  
   const [image, setImage] = useState(''); 
-  
-  const [type, setType] = useState('ทั่วไป');
   const [date, setDate] = useState(new Date());
-  
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  
+  // ✅ แก้ไขตรงนี้: เพิ่ม property 'image' ให้ครบทุกอัน (Error จะหายไป)
   const quickOptions: QuickOption[] = [
-    { label: 'วิ่ง', icon: 'person-running', color: '#FF6F00', image: 'https://hips.hearstapps.com/hmg-prod/images/running-is-one-of-the-best-ways-to-stay-fit-royalty-free-image-1036780592-1553033495.jpg' },
-    { label: 'ปั่นจักรยาน', icon: 'bicycle', color: '#00897B', image: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=600&q=80' },
-    { label: 'ฟิตเนส', icon: 'dumbbell', color: '#7B1FA2', image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80' },
-    { label: 'ว่ายน้ำ', icon: 'person-swimming', color: '#1E88E5', image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80' },
+    { 
+      label: 'บาสเกตบอล', 
+      icon: 'basketball', 
+      color: '#E65100', 
+      defaultCalories: '450',
+      image: 'https://images.pexels.com/photos/1752757/pexels-photo-1752757.jpeg?auto=compress&cs=tinysrgb&w=400' 
+    },
+    { 
+      label: 'แบดมินตัน', 
+      icon: 'medal', 
+      color: '#00ACC1', 
+      defaultCalories: '300',
+      image: 'https://images.pexels.com/photos/3660204/pexels-photo-3660204.jpeg?auto=compress&cs=tinysrgb&w=400'
+    },
+    { 
+      label: 'ฟุตบอล', 
+      icon: 'futbol', 
+      color: '#2E7D32', 
+      defaultCalories: '500',
+      image: 'https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg?auto=compress&cs=tinysrgb&w=400'
+    },
+    { 
+      label: 'วิ่ง/เดิน', 
+      icon: 'person-running', 
+      color: '#1E88E5', 
+      defaultCalories: '250',
+      image: 'https://www.healthywomen.org/media-library/fitness-woman-running-training-for-marathon-on-sunny-coast-trail.jpg?id=34353001&width=1200&height=800&quality=70&coordinates=110%2C0%2C110%2C0'
+    },
   ];
 
   const handleQuickSelect = (opt: QuickOption) => {
-    setTitle(opt.label); // ใส่ชื่ออัตโนมัติ
-    setType(opt.label);  // ใส่ประเภทอัตโนมัติ
-    setImage(opt.image) // ใส่รูปภาคอัตโนมัติ
+    setTitle(opt.label);
+    setCalories(opt.defaultCalories);
+    // ✅ เพิ่มตรงนี้: ถ้าอยากให้กดแล้วรูปเด้งมาด้วย
+    setImage(opt.image); 
   };
 
   const handleSave = async () => {
-    if (!title || !calories) {
-        Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อและแคลอรี่');
-        return;
-    }
+    if (!title || !calories) return Alert.alert('เตือน', 'กรุณากรอกชื่อและแคลอรี่');
 
     const newActivity: Activity = {
       id: Date.now().toString(),
       title,
       calories: parseFloat(calories),
-      image, // ใช้ URL ที่ user กรอกในช่อง Input
+      image: image || 'https://placehold.co/600x400?text=Sports',
       date: date.toISOString(),
-      type
+      type: title,
     };
 
     try {
@@ -62,103 +75,81 @@ export default function AddActivityScreen() {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([newActivity, ...data]));
       
       Alert.alert('สำเร็จ', 'บันทึกเรียบร้อย', [{ text: 'ตกลง', onPress: () => router.push('/(tabs)') }]);
-      
-      // Reset
-      setTitle(''); 
-      setCalories(''); 
-      setImage('https://via.placeholder.com/300x200');
+      setTitle(''); setCalories(''); setImage('');
     } catch (e) {
-      Alert.alert('Error', 'บันทึกไม่ได้');
+      Alert.alert('Error', 'บันทึกข้อมูลล้มเหลว');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <Text style={styles.header}>บันทึกกิจกรรม</Text>
-        
-        {/* 1. ปุ่มเลือกด่วน (Icon + Text) */}
-        <Text style={styles.label}>เลือกประเภทกีฬา</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.mainTitle}>บันทึกกีฬา</Text>
+
+        <Text style={styles.sectionLabel}>เลือกกีฬาที่เล่น</Text>
+        {/* QuickSelector จะแสดงผลตามโค้ดในไฟล์ component ที่เราเขียนไว้ */}
         <QuickSelector options={quickOptions} onSelect={handleQuickSelect} />
 
-        <Text style={styles.label}>รายละเอียด</Text>
+        <View style={styles.formCard}>
+          <Text style={styles.inputLabel}>ลิงก์รูปภาพ (URL)</Text>
+          <TextInput 
+            style={styles.input}
+            placeholder="วางลิงก์รูปภาพจากอินเทอร์เน็ตที่นี่..."
+            value={image}
+            onChangeText={setImage}
+          />
 
-        {/* 2. ช่องกรอก URL รูปภาพ */}
-        <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>URL รูปภาพ</Text>
-            <TextInput 
-                style={styles.input} 
-                value={image} 
-                onChangeText={setImage} 
-                placeholder="วางลิ้งค์รูปภาพที่นี่..." 
-            />
-        </View>
+          {image ? (
+            <Image source={{ uri: image }} style={styles.previewImage} />
+          ) : (
+            <View style={styles.noImage}><Text style={{color:'#999'}}>ไม่มีรูปภาพตัวอย่าง</Text></View>
+          )}
 
-        {/* 3. Preview รูปจาก Link */}
-        {image ? (
-            <Image source={{ uri: image }} style={styles.preview} resizeMode="cover" />
-        ) : null}
+          <Text style={styles.inputLabel}>ชื่อกิจกรรม/สถานที่</Text>
+          <TextInput 
+            style={styles.input}
+            placeholder="เช่น เล่นบาสที่สวนหลวง"
+            value={title}
+            onChangeText={setTitle}
+          />
 
-        {/* 4. ชื่อกิจกรรม (Auto-fill ได้) */}
-        <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>ชื่อกิจกรรม</Text>
-            <TextInput 
-                style={styles.input} 
-                value={title} 
-                onChangeText={setTitle} 
-                placeholder="เช่น วิ่งสวนลุม" 
-            />
-        </View>
+          <Text style={styles.inputLabel}>แคลอรี่ที่เผาผลาญ (kcal)</Text>
+          <TextInput 
+            style={styles.input}
+            placeholder="ระบุตัวเลข..."
+            value={calories}
+            onChangeText={setCalories}
+            keyboardType="numeric"
+          />
 
-        {/* 5. แคลอรี่ */}
-        <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>แคลอรี่ (kcal)</Text>
-            <TextInput 
-                style={styles.input} 
-                value={calories} 
-                onChangeText={setCalories} 
-                keyboardType="numeric" 
-                placeholder="0" 
-            />
-        </View>
-
-        {/* 6. วันที่และเวลา */}
-        <Text style={styles.label}>วันที่และเวลา</Text>
-        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateBtn}>
-             <FontAwesome6 name="calendar-days" size={16} color="#555" />
-             <Text style={{marginLeft: 8}}>{date.toLocaleDateString('th-TH')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowTimePicker(true)} style={styles.dateBtn}>
-             <FontAwesome6 name="clock" size={16} color="#555" />
-             <Text style={{marginLeft: 8}}>{date.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</Text>
+          <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
+             <FontAwesome6 name="calendar-day" size={16} color="#666" />
+             <Text style={styles.datePickerText}>{date.toLocaleDateString('th-TH')}</Text>
           </TouchableOpacity>
         </View>
-
-        {showDatePicker && <DateTimePicker value={date} mode="date" onChange={(_, d) => { setShowDatePicker(false); if(d) setDate(d); }} />}
-        {showTimePicker && <DateTimePicker value={date} mode="time" onChange={(_, d) => { setShowTimePicker(false); if(d) setDate(d); }} />}
 
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-          <Text style={styles.saveText}>บันทึกข้อมูล</Text>
+          <Text style={styles.saveBtnText}>บันทึกข้อมูล</Text>
         </TouchableOpacity>
+
+        {showDatePicker && <DateTimePicker value={date} mode="date" onChange={(_, d) => { setShowDatePicker(false); if(d) setDate(d); }} />}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  label: { fontSize: 16, fontWeight: '600', marginBottom: 10, marginTop: 10, color: '#333' },
-  
-  inputGroup: { marginBottom: 15 },
-  inputLabel: { fontSize: 14, color: '#666', marginBottom: 5 },
-  input: { backgroundColor: 'white', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#DDD', fontSize: 16 },
-  
-  preview: { width: '100%', height: 180, borderRadius: 10, backgroundColor: '#DDD', marginBottom: 15, borderWidth: 1, borderColor: '#EEE' },
-  
-  dateBtn: { flex: 1, flexDirection: 'row', backgroundColor: 'white', padding: 12, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#DDD' },
-  
-  saveBtn: { backgroundColor: '#FF6F00', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 10, shadowColor: '#FF6F00', shadowOffset: {width:0, height:4}, shadowOpacity:0.3, elevation:5 },
-  saveText: { color: 'white', fontWeight: 'bold', fontSize: 18 }
+  container: { flex: 1, backgroundColor: '#FFF' },
+  scrollContent: { padding: 25 },
+  mainTitle: { fontSize: 28, fontWeight: 'bold', color: '#111', marginBottom: 20 },
+  sectionLabel: { fontSize: 16, color: '#666', marginBottom: 15, fontWeight: '600' },
+  formCard: { backgroundColor: '#F9F9F9', borderRadius: 20, padding: 20, gap: 12 },
+  inputLabel: { fontSize: 14, color: '#333', fontWeight: 'bold', marginTop: 5 },
+  input: { backgroundColor: '#FFF', padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#EEE', fontSize: 16 },
+  previewImage: { width: '100%', height: 180, borderRadius: 12, marginTop: 5 },
+  noImage: { width: '100%', height: 100, borderRadius: 12, backgroundColor: '#EEE', justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CCC' },
+  datePickerBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 15, backgroundColor: '#FFF', borderRadius: 12, borderWidth: 1, borderColor: '#EEE' },
+  datePickerText: { fontSize: 16, color: '#333' },
+  saveBtn: { backgroundColor: '#FF6F00', padding: 20, borderRadius: 15, alignItems: 'center', marginTop: 30, shadowColor: '#FF6F00', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  saveBtnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' }
 });

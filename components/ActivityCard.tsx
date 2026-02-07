@@ -6,31 +6,37 @@ import { Activity } from '../constants/types';
 export default function ActivityCard({ item }: { item: Activity }) {
   return (
     <View style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
-      <View style={styles.cardContent}>
-        <Text style={styles.activityTitle}>{item.title}</Text>
-        <View style={styles.cardMeta}>
+      <Image 
+        source={{ uri: item.image }} 
+        style={styles.image} 
+        resizeMode="cover"
+      />
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{item.title}</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.calories} kcal</Text>
+          </View>
+        </View>
+        <View style={styles.footer}>
           <FontAwesome6 name="clock" size={12} color="#888" />
-          <Text style={styles.metaText}>
+          <Text style={styles.timeText}>
             {new Date(item.date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
           </Text>
         </View>
-      </View>
-      <View style={styles.caloriesBadge}>
-        <FontAwesome6 name="fire" size={12} color="#FF6F00" />
-        <Text style={styles.caloriesText}>{item.calories} kcal</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: 'white', borderRadius: 16, padding: 15, marginBottom: 12, flexDirection: 'row', alignItems: 'center', elevation: 2 },
-  cardImage: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#EEE', marginRight: 15 },
-  cardContent: { flex: 1 },
-  activityTitle: { fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 4 },
-  cardMeta: { flexDirection: 'row', alignItems: 'center' },
-  metaText: { fontSize: 12, color: '#888', marginLeft: 4 },
-  caloriesBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center' },
-  caloriesText: { fontSize: 14, fontWeight: '700', color: '#FF6F00', marginLeft: 4 },
+  card: { backgroundColor: 'white', borderRadius: 16, marginBottom: 15, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5 },
+  image: { width: '100%', height: 150, backgroundColor: '#EEE' },
+  content: { padding: 15 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  badge: { backgroundColor: '#FFF3E0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  badgeText: { color: '#FF6F00', fontWeight: 'bold', fontSize: 14 },
+  footer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  timeText: { color: '#888', fontSize: 14 }
 });
